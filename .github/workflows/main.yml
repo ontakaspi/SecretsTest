@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Set up environment
         run: |
-          echo "I3GIS_SCAN_IMAGE_TAG=1.0.0" >> "$GITHUB_ENV"
+          echo "I3GIS_SCAN_IMAGE_TAG=latest" >> "$GITHUB_ENV"
 
           
   i3gis-job:
