@@ -14,13 +14,17 @@ jobs:
     - name: Use the value
       id: step_two
       run: |
-        printf '%s\n' "$action_state" # This will output 'yellow'
+       echo "$action_state"
       
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Set up environment
         run: |
+          echo "$action_state"
+          echo "${{env.action_state}}"
+          echo "${env.action_state}"
+          echo "$env.action_state"
           echo "I3GIS_SCAN_IMAGE_TAG=latest" >> "$GITHUB_ENV"
 
           
