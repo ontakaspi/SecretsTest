@@ -11,6 +11,10 @@ jobs:
         run: |
           # Your build environment setup here
           echo "I3GIS_SCAN_IMAGE_TAG=1.0.0" >> $GITHUB_ENV
+
+      - name: Debug I3GIS_SCAN_IMAGE_TAG
+        run: |
+          echo "I3GIS_SCAN_IMAGE_TAG=${{ env.I3GIS_SCAN_IMAGE_TAG }}"
           
   i3gis-job:
     runs-on: ubuntu-latest
