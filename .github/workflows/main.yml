@@ -6,13 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    outputs:
-      I3GIS_SCAN_IMAGE_TAG: ${{ steps.set-env.outputs.I3GIS_SCAN_IMAGE_TAG }}
-
     steps:
       - name: Set up environment
-        id: set-env
         run: |
           # Your build environment setup here
           echo "I3GIS_SCAN_IMAGE_TAG=1.0.0" >> $GITHUB_ENV
@@ -20,9 +15,9 @@ jobs:
   i3gis-job:
     runs-on: ubuntu-latest
     steps:
-      - name: "Scan project asd for image python and tag '${{ env.I3GIS_SCAN_IMAGE_TAG }}' with i3gis"
+      - name: "Scan project asd for image python and tag ${{ env.I3GIS_SCAN_IMAGE_TAG }} with i3gis"
         run: |
-          echo "Scanning project asd for image python and tag '${{ env.I3GIS_SCAN_IMAGE_TAG }}' with i3gis..."
+          echo "Scanning project asd for image python and tag ${{ env.I3GIS_SCAN_IMAGE_TAG }} with i3gis..."
           scanResponse=$(curl --write-out '%{http_code}' --request POST -sL --url 'https://ontakaspi.my.id/container/api/v1/integration/image/scan' --header 'Content-Type: application/json' --header 'Authorization: Bearer NKIXHVYgwWwe880HgM+v+00qn4wtgDMnNw/IuRmWuVFEjvCFxQtO7JanWUSst0OlvIInmkwCv2PVosaby8DRTtbksi6P1XUiRCk/Bcstb8bmZfiQgIyI0EYpMJztEqgNgUyQBmBl5c72+QQtTEqXbg==' --data '{"container_project_id":30,"image_name":"python", "image_tag":"${{ env.I3GIS_SCAN_IMAGE_TAG }}"}')
           scanCode=$(echo $scanResponse | grep -o ...$)
           echo "HTTP response status code: $scanCode"
