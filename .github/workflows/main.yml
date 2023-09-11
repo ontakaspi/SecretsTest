@@ -23,7 +23,6 @@ jobs:
         run: |
           echo "$action_state"
           echo "${{env.action_state}}"
-          echo "${env.action_state}"
           echo "$env.action_state"
           echo "I3GIS_SCAN_IMAGE_TAG=latest" >> "$GITHUB_ENV"
 
