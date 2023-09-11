@@ -17,6 +17,7 @@ jobs:
 
 
   i3gis-job:
+    needs: setup-i3gis-env
     runs-on: ubuntu-latest
     outputs: 
       I3GIS_IMAGE_ID: ${{ steps.scan-i3gis.outputs.I3GIS_IMAGE_ID }}    
