@@ -14,7 +14,7 @@ jobs:
           echo "I3GIS_SCAN_IMAGE_TAG=1.0.0" >> $GITHUB_OUTPUT
     outputs:
       I3GIS_SCAN_IMAGE_TAG: ${{ steps.setup-image-tag-i3gis.outputs.I3GIS_SCAN_IMAGE_TAG }}
-
+  
   i3gis-job:
     needs: setup-i3gis-env
     runs-on: ubuntu-latest
@@ -38,7 +38,9 @@ jobs:
           echo "Scan project asd for image python and tag '${{ needs.setup-i3gis-env.outputs.I3GIS_SCAN_IMAGE_TAG }}' with i3gis is starting..."
           imageId=$(echo "$scanResponse" | grep -o '"image_id": *[0-9]*' | grep -o '[0-9]*')
           echo "I3GIS_IMAGE_ID=$imageId" >> $GITHUB_OUTPUT
+
   i3gis-status-job:
+    needs: i3gis-job
     runs-on: ubuntu-latest
     steps:
       - name: Get scan status
@@ -48,7 +50,7 @@ jobs:
           while [ "$status_running" = true ]; do
             sleep 5
             echo "Scan still running..."
-            checkResponse=$(curl --write-out ''%{http_code}'' --request GET -sL --url 'https://ontakaspi.my.id/container/api/v1/integration/image/${{needs.i3gis-job.oukwCv2PVosaby8DRTtbksi6P1XUiRCk/Bcstb8bmZfiQgIyI0EYpMJztEqgNgUyQBmBl5c72+QQtTEqXbg==')
+            checkResponse=$(curl --write-out ''%{http_code}'' --request GET -sL --url 'https://ontakaspi.my.id/container/api/v1/integration/image/${{needs.i3gis-job.outputs.I3GIS_IMAGE_ID}}' --header 'Content-Type: application/json' --header 'Authorization: Bearer NKIXHVYgwWwe880HgM+v+00qn4wtgDMnNw/IuRmWuVFEjvCFxQtO7JanWUSst0OlvIInmkwCv2PVosaby8DRTtbksi6P1XUiRCk/Bcstb8bmZfiQgIyI0EYpMJztEqgNgUyQBmBl5c72+QQtTEqXbg==')
             checkCode=$(echo $checkResponse | grep -o ...$)
             echo "HTTP response status code: $checkCode"
             if [ $checkCode != "201" ] && [ $checkCode != "404" ]; then
