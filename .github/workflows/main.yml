@@ -1,0 +1,58 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up environment
+        run: |
+          # Your build environment setup here
+          echo "I3GIS_SCAN_IMAGE_TAG=1.0.0" >> $GITHUB_ENV
+          
+  i3gis-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scan project asd for image python and tag '$I3GIS_SCAN_IMAGE_TAG' with i3gis
+        run: |
+          echo "Scanning project asd for image python and tag '$I3GIS_SCAN_IMAGE_TAG' with i3gis..."
+          scanResponse=$(curl --write-out '%{http_code}' --request POST -sL --url 'https://ontakaspi.my.id/container/api/v1/integration/image/scan' --header 'Content-Type: application/json' --header 'Authorization: Bearer NKIXHVYgwWwe880HgM+v+00qn4wtgDMnNw/IuRmWuVFEjvCFxQtO7JanWUSst0OlvIInmkwCv2PVosaby8DRTtbksi6P1XUiRCk/Bcstb8bmZfiQgIyI0EYpMJztEqgNgUyQBmBl5c72+QQtTEqXbg==' --data '{"container_project_id":30,"image_name":"python", "image_tag":"$I3GIS_SCAN_IMAGE_TAG"}')
+          scanCode=$(echo $scanResponse | grep -o ...$)
+          echo "HTTP response status code: $scanCode"
+          if [ $scanCode = "201" ]; then
+            echo "Scan project asd for image python and tag '$I3GIS_SCAN_IMAGE_TAG' with i3gis..."
+          else
+            echo "Response: $scanResponse"
+            echo "Build failed because scan was not successful..."
+            exit 1
+          fi
+          echo "Scan project asd for image python and tag '$I3GIS_SCAN_IMAGE_TAG' with i3gis is starting..."
+          imageId=$(echo "$scanResponse" | grep -o '"image_id": *[0-9]*' | grep -o '[0-9]*')
+          I3GIS_IMAGE_ID="$imageId"
+
+  i3gis-status-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get scan status
+        run: |
+          echo "Get scan status..."
+          status_running=true
+          while [ "$status_running" = true ]; do
+            sleep 5
+            echo "Scan still running..."
+            checkResponse=$(curl --write-out ''%{http_code}'' --request GET -sL --url 'https://ontakaspi.my.id/container/api/v1/integration/image/$I3GIS_IMAGE_ID' --header 'Content-Type: application/json' --header 'Authorization: Bearer NKIXHVYgwWwe880HgM+v+00qn4wtgDMnNw/IuRmWuVFEjvCFxQtO7JanWUSst0OlvIInmkwCv2PVosaby8DRTtbksi6P1XUiRCk/Bcstb8bmZfiQgIyI0EYpMJztEqgNgUyQBmBl5c72+QQtTEqXbg==')
+            checkCode=$(echo $checkResponse | grep -o ...$)
+            echo "HTTP response status code: $checkCode"
+            if [ $checkCode != "201" ] && [ $checkCode != "404" ]; then
+              echo "Response: $checkResponse"
+              echo "Scan failed..."
+              exit 1
+            fi
+            if [ $checkCode = "404" ]; then
+              echo "Scan finished..."
+              status_running=false
+            fi
+          done
