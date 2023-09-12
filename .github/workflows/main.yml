@@ -11,33 +11,34 @@ jobs:
       - name: Set up environment
         id: "setup-image-tag-i3gis"
         run: |
-          echo "I3GIS_SCAN_IMAGE_TAG=1.0.0" >> $GITHUB_OUTPUT
+          echo "I3GIS_BINARY_PATH=Diary_with_lock_v4.90_apkpure.com.apk" >> $GITHUB_OUTPUT
     outputs:
-      I3GIS_SCAN_IMAGE_TAG: ${{ steps.setup-image-tag-i3gis.outputs.I3GIS_SCAN_IMAGE_TAG }}
+      I3GIS_BINARY_PATH: ${{ steps.setup-image-tag-i3gis.outputs.I3GIS_BINARY_PATH }}
   
   i3gis-job:
     needs: setup-i3gis-env
     runs-on: ubuntu-latest
     outputs:
-      I3GIS_IMAGE_ID: ${{ steps.scan-i3gis.outputs.I3GIS_IMAGE_ID }}
+      I3GIS_APK_VERSION_ID: ${{ steps.scan-i3gis.outputs.I3GIS_APK_VERSION_ID }}
     steps:
-      - name: Scan project asd for image python and tag '${{ needs.setup-i3gis-env.outputs.I3GIS_SCAN_IMAGE_TAG }}' with i3gis
+      - name: Scan project android project 19 with i3gis
         id: "scan-i3gis"
         run: |
-          echo "Scanning project asd for image python and tag '${{ needs.setup-i3gis-env.outputs.I3GIS_SCAN_IMAGE_TAG }}' with i3gis..."
-          scanResponse=$(curl --write-out '%{http_code}' --request POST -sL --url 'https://ontakaspi.my.id/container/api/v1/integration/image/scan' --header 'Content-Type: application/json' --header 'Authorization: Bearer NKIXHVYgwWwe880HgM+v+00qn4wtgDMnNw/IuRmWuVFEjvCFxQtO7JanWUSst0OlvIInmkwCv2PVosaby8DRTtbksi6P1XUiRCk/Bcstb8bmZfiQgIyI0EYpMJztEqgNgUyQBmBl5c72+QQtTEqXbg==' --data '{"container_project_id":30,"image_name":"python", "image_tag":"${{ needs.setup-i3gis-env.outputs.I3GIS_SCAN_IMAGE_TAG }}"}')
+          curl -o Diary_with_lock_v4.90_apkpure.com.apk -LJO https://github.com/i3gis/SampleAPK/raw/95b00d2fab4a8d0110947cd066962a3314b6dc23/Diary%20with%20lock_v4.90_apkpure.com.apk
+          echo "Scanning project android project 19 with i3gis..."
+          scanResponse=$(curl --write-out '%{http_code}' --request POST -sL --url 'https://ontakaspi.my.id/mast/api/v1/integration/scan' --header 'Authorization: Bearer NKIXHVYgwWwe880HgM+v+00qn4wtgDMnNw/IuRmWuVFEjvCFxQtO7JanWUSst0OlvIInmkwCv2PVosaby8DRTtbksi6P1XUiRCk/Bcstb8ZczDFwTfn8eP6pvS52Ghxd1MwbGDAEPvXQXrDEjwNOtg==' -F 'apk_file=@"${{ needs.setup-i3gis-env.outputs.I3GIS_BINARY_PATH }}"' -F 'mobile_project_id=58')
           scanCode=$(echo $scanResponse | grep -o ...$)
           echo "HTTP response status code: $scanCode"
-          if [ $scanCode = "201" ]; then
-            echo "Scan project asd for image python and tag '${{ needs.setup-i3gis-env.outputs.I3GIS_SCAN_IMAGE_TAG }}' with i3gis..."
+          if [ $scanCode = "200" ]; then
+            echo "Scan project android project 19 with i3gis..."
           else
             echo "Response: $scanResponse"
             echo "Build failed because scan was not successful..."
             exit 1
           fi
-          echo "Scan project asd for image python and tag '${{ needs.setup-i3gis-env.outputs.I3GIS_SCAN_IMAGE_TAG }}' with i3gis is starting..."
-          imageId=$(echo "$scanResponse" | grep -o '"image_id": *[0-9]*' | grep -o '[0-9]*')
-          echo "I3GIS_IMAGE_ID=$imageId" >> $GITHUB_OUTPUT
+          echo "Scan project android project 19 with i3gis is starting..."
+          apkVersionId=$(echo "$scanResponse" | grep -o '"apk_version_id": *[0-9]*' | grep -o '[0-9]*')
+          echo "I3GIS_APK_VERSION_ID=$apkVersionId" >> $GITHUB_OUTPUT
 
   i3gis-status-job:
     needs: i3gis-job
@@ -50,10 +51,10 @@ jobs:
           while [ "$status_running" = true ]; do
             sleep 5
             echo "Scan still running..."
-            checkResponse=$(curl --write-out ''%{http_code}'' --request GET -sL --url 'https://ontakaspi.my.id/container/api/v1/integration/image/${{needs.i3gis-job.outputs.I3GIS_IMAGE_ID}}' --header 'Content-Type: application/json' --header 'Authorization: Bearer NKIXHVYgwWwe880HgM+v+00qn4wtgDMnNw/IuRmWuVFEjvCFxQtO7JanWUSst0OlvIInmkwCv2PVosaby8DRTtbksi6P1XUiRCk/Bcstb8bmZfiQgIyI0EYpMJztEqgNgUyQBmBl5c72+QQtTEqXbg==')
+            checkResponse=$(curl --write-out ''%{http_code}'' --request GET -sL --url 'https://ontakaspi.my.id/mast/api/v1/integration/status/${{needs.i3gis-job.outputs.I3GIS_APK_VERSION_ID}}' --header 'Content-Type: application/json' --header 'Authorization: Bearer NKIXHVYgwWwe880HgM+v+00qn4wtgDMnNw/IuRmWuVFEjvCFxQtO7JanWUSst0OlvIInmkwCv2PVosaby8DRTtbksi6P1XUiRCk/Bcstb8ZczDFwTfn8eP6pvS52Ghxd1MwbGDAEPvXQXrDEjwNOtg==')
             checkCode=$(echo $checkResponse | grep -o ...$)
             echo "HTTP response status code: $checkCode"
-            if [ $checkCode != "201" ] && [ $checkCode != "404" ]; then
+            if [ $checkCode != "200" ] && [ $checkCode != "404" ]; then
               echo "Response: $checkResponse"
               echo "Scan failed..."
               exit 1
